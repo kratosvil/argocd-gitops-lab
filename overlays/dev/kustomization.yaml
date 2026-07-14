@@ -12,4 +12,4 @@ patches:
     patch: |-
       - op: replace
         path: /spec/template/spec/containers/0/args/0
-        value: "-text=hello from DEV"
+        value: "-text=hello from DEV v2 - promoted via git"
