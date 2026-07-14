@@ -2,7 +2,7 @@
 
 Small, self-contained lab that demonstrates GitOps deployment to Kubernetes with ArgoCD: declarative environment promotion via Kustomize overlays, automated sync, and self-healing against manual drift.
 
-**Status:** in progress — this README will be updated with sync/self-heal screenshots once the demos are executed.
+**Status:** demos executed — see the process overview below.
 
 ## Why this lab
 
@@ -62,11 +62,13 @@ kubectl apply -f argocd/application-dev.yaml
 
 ## Demos
 
+![Process overview: architecture, self-heal timeline, Git promotion timeline and live endpoints](docs/images/process-overview.png)
+
 ### Self-healing (drift correction)
-A manual `kubectl scale` against the deployment is reverted automatically by ArgoCD within seconds, without any human re-sync. *(screenshot pending)*
+A manual `kubectl scale` against the deployment (1 → 2 replicas) is caught by ArgoCD's live watch and reverted automatically within ~10 seconds, without any human re-sync.
 
 ### Environment promotion via Git
-Changing `overlays/dev/kustomization.yaml` (replica count or text) and pushing to `main` triggers an automatic sync — no `kubectl apply` involved. *(screenshot pending)*
+Changing `overlays/dev/kustomization.yaml` and pushing to `main` triggers an automatic sync — no `kubectl apply` involved. The rollout replaces the ReplicaSet and the running pod reflects the new revision end to end.
 
 ## Cleanup
 
