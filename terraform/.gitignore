@@ -1,0 +1,28 @@
+# Local .terraform directories (provider binaries — state lives in S3, not here)
+**/.terraform/*
+
+# State files — never local, but ignore as a safety net
+*.tfstate
+*.tfstate.*
+errored.tfstate
+
+# Plan output files — binary, not meant for version control
+*.tfplan
+tfplan
+
+# Crash logs
+crash.log
+crash.*.log
+
+# Variable files that may hold sensitive values
+*.tfvars
+*.tfvars.json
+
+# Override files, never committed
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+
+.terraformrc
+terraform.rc
