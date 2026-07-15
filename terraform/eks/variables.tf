@@ -17,9 +17,9 @@ variable "cluster_version" {
 }
 
 variable "node_instance_type" {
-  description = "EC2 instance type for the managed node group"
+  description = "EC2 instance type for the managed node group — must be Free Tier eligible, this AWS account rejects anything else"
   type        = string
-  default     = "t3.medium"
+  default     = "t3.small"
 }
 
 variable "node_desired_size" {
