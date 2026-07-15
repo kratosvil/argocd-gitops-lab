@@ -1,6 +1,6 @@
-# Architecture v2 — AWS + CI/CD upgrade (planning doc)
+# Architecture v2 — AWS + CI/CD upgrade
 
-**Status:** designed, not yet built. This document is the plan agreed before touching any infrastructure — the intent is to build once against a clear design instead of iterating live.
+**Status:** built and verified. Everything below was the plan agreed before touching any infrastructure — the intent was to build once against a clear design instead of iterating live, and that held up in practice with only tactical fixes needed along the way (see the "real problems hit and fixed" section in [docs/images/process-overview-v2.1.png](images/process-overview-v2.1.png)). All 6 Terraform stacks applied, all 3 demos (self-heal, manual promotion, CI-driven promotion) verified against the running EKS cluster, real ALB URL confirmed load-balancing across pods. Torn down with `terraform destroy` after the evidence above was captured — see the `## Cleanup` section of the main README for the exact command sequence.
 
 ## Why this upgrade
 
