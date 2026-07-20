@@ -1,0 +1,19 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: saga-pod-crashlooping
+  namespace: observability
+  labels:
+    release: kube-prometheus-stack
+spec:
+  groups:
+    - name: saga.pod-crashlooping
+      rules:
+        - alert: SagaPodCrashLooping
+          expr: max_over_time(kube_pod_container_status_waiting_reason{reason="CrashLoopBackOff"}[5m]) >= 1
+          for: 1m
+          labels:
+            severity: critical
+          annotations:
+            summary: "Pod {{ $labels.namespace }}/{{ $labels.pod }} en CrashLoopBackOff"
+            description: "El container {{ $labels.container }} del pod {{ $labels.pod }} (namespace {{ $labels.namespace }}) está reiniciando en loop."

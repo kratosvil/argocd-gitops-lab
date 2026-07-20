@@ -1,0 +1,19 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: saga-hpa-at-limit
+  namespace: observability
+  labels:
+    release: kube-prometheus-stack
+spec:
+  groups:
+    - name: saga.hpa-at-limit
+      rules:
+        - alert: SagaHPAAtLimit
+          expr: kube_horizontalpodautoscaler_status_current_replicas / kube_horizontalpodautoscaler_spec_max_replicas >= 1
+          for: 5m
+          labels:
+            severity: warning
+          annotations:
+            summary: "HPA {{ $labels.namespace }}/{{ $labels.horizontalpodautoscaler }} tocó el máximo de réplicas"
+            description: "El HorizontalPodAutoscaler llegó a max_replicas sostenido por 5m — puede necesitar más capacidad o hay un problema de carga."
