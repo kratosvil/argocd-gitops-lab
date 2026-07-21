@@ -6,7 +6,7 @@ metadata:
 spec:
   project: default
   source:
-    repoURL: https://github.com/kratosvil/argocd-gitops-aws.git
+    repoURL: https://github.com/kratosvil/saga-gitops-manifests.git
     targetRevision: main
     path: overlays/dev
   destination:
