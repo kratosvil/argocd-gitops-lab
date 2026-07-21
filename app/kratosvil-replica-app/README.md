@@ -33,4 +33,6 @@ curl http://localhost:8090
 
 `.github/workflows/build-and-promote.yml` builds and pushes this image to
 ECR on every push touching this directory, tags it with the short commit
-SHA, and bumps `overlays/dev/kustomization.yaml` to point at the new tag.
+SHA, and bumps `overlays/dev/kustomization.yaml` in the private
+[`saga-gitops-manifests`](https://github.com/kratosvil/saga-gitops-manifests)
+repo to point at the new tag.
