@@ -1,0 +1,80 @@
+# kube-prometheus-stack completo (Prometheus+Grafana+Alertmanager) vía ArgoCD
+# en vez de Terraform directo — a diferencia de ArgoCD mismo o el ALB
+# Controller, este chart no tiene dependencia de arranque (no hace falta que
+# exista antes de que ArgoCD pueda gestionar cosas), así que no hay razón
+# para no darle self-healing real (selfHeal corrige drift en segundos, algo
+# que Terraform no hace hasta el próximo apply manual).
+#
+# Valores hardcodeados a actualizar manualmente si cambian (mismo criterio
+# manual que el resto del lab):
+#   - ALB DNS (k8s-kratosvilreplicaa-...): ver `kubectl get ingress -A`
+#   - webhook URL del API Gateway: ver `terraform output alertmanager_webhook_url`
+#     en terraform/observability/ (ese stack sigue siendo Terraform — es AWS,
+#     Lambda + IAM + API Gateway, sin ángulo de Kubernetes)
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: saga-observability-stack
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://prometheus-community.github.io/helm-charts
+    chart: kube-prometheus-stack
+    targetRevision: 87.17.0
+    helm:
+      valuesObject:
+        # EKS no expone controller-manager/scheduler/etcd como pods
+        # scrapeables — estos ServiceMonitors siempre fallarían.
+        kubeControllerManager:
+          enabled: false
+        kubeScheduler:
+          enabled: false
+        kubeEtcd:
+          enabled: false
+        kubeProxy:
+          enabled: false
+        prometheus:
+          prometheusSpec:
+            retention: 6h
+            routePrefix: /prometheus
+            externalUrl: http://k8s-kratosvilreplicaa-37d9f8e1dd-139128285.us-east-1.elb.amazonaws.com/prometheus
+        grafana:
+          persistence:
+            enabled: false
+          defaultDashboardsEnabled: true
+          grafana.ini:
+            server:
+              domain: k8s-kratosvilreplicaa-37d9f8e1dd-139128285.us-east-1.elb.amazonaws.com
+              root_url: "%(protocol)s://%(domain)s/grafana/"
+              serve_from_sub_path: true
+        alertmanager:
+          alertmanagerSpec:
+            routePrefix: /alertmanager
+            externalUrl: http://k8s-kratosvilreplicaa-37d9f8e1dd-139128285.us-east-1.elb.amazonaws.com/alertmanager
+          config:
+            global: {}
+            route:
+              receiver: webhook-dispatcher
+              group_by: ["alertname", "namespace"]
+              group_wait: 10s
+              group_interval: 30s
+              repeat_interval: 1h
+              # Limpia la sub-ruta por defecto del chart que apunta a un
+              # receiver "null" — como reemplazamos la lista de receivers
+              # completa, esa sub-ruta queda huérfana si no se limpia.
+              routes: []
+            receivers:
+              - name: webhook-dispatcher
+                webhook_configs:
+                  - url: "https://jywh3wqfic.execute-api.us-east-1.amazonaws.com/alertmanager-webhook"
+                    send_resolved: true
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: observability
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

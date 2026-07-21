@@ -1,0 +1,23 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: kube-prometheus-stack-alertmanager
+  namespace: observability
+  annotations:
+    kubernetes.io/ingress.class: alb
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/target-type: ip
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}]'
+    alb.ingress.kubernetes.io/group.name: kratosvil-replica-app
+    alb.ingress.kubernetes.io/group.order: "13"
+spec:
+  rules:
+    - http:
+        paths:
+          - path: /alertmanager
+            pathType: Prefix
+            backend:
+              service:
+                name: kube-prometheus-stack-alertmanager
+                port:
+                  number: 9093

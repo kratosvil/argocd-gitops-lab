@@ -1,0 +1,26 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: kube-prometheus-stack-grafana
+  namespace: observability
+  annotations:
+    kubernetes.io/ingress.class: alb
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/target-type: ip
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}]'
+    # Mismo ALB compartido que argocd-server y kratosvil-replica-app.
+    # group.order debe ser MENOR que el catch-all "/" de la demo app (20) —
+    # si no, esa regla se come el tráfico antes de llegar acá.
+    alb.ingress.kubernetes.io/group.name: kratosvil-replica-app
+    alb.ingress.kubernetes.io/group.order: "11"
+spec:
+  rules:
+    - http:
+        paths:
+          - path: /grafana
+            pathType: Prefix
+            backend:
+              service:
+                name: kube-prometheus-stack-grafana
+                port:
+                  number: 80

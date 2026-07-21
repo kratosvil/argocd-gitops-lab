@@ -3,3 +3,6 @@ kind: Kustomization
 resources:
   - pod-crashlooping.yaml
   - hpa-at-limit.yaml
+  - ingress-grafana.yaml
+  - ingress-prometheus.yaml
+  - ingress-alertmanager.yaml
