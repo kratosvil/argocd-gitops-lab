@@ -59,13 +59,29 @@ data "aws_iam_policy_document" "github_actions_assume" {
       values   = ["sts.amazonaws.com"]
     }
 
-    # Scoped to this repo, any branch/ref - tighten to a specific ref
-    # (e.g. "repo:kratosvil/argocd-gitops-aws:ref:refs/heads/main") if the
-    # workflow ever needs a stricter trust boundary.
+    # Scoped to this repo, any workflow file, any branch/ref.
+    #
+    # NOT using "sub" for the required scoping condition: GitHub's sub claim
+    # now embeds immutable numeric IDs
+    # ("repo:kratosvil@43276540/argocd-gitops-aws@1300779183:ref:...")
+    # instead of the classic "repo:OWNER/REPO:ref:..." — a StringLike match
+    # on the old sub pattern silently breaks (AccessDenied, no useful error)
+    # since the wildcard can't span the inserted "@id" segments. AWS also
+    # now *requires* the trust policy to scope on "sub" or
+    # "job_workflow_ref" (rejects an assume-role policy that only
+    # constrains other claims) — job_workflow_ref stays a clean
+    # "OWNER/REPO/.github/workflows/FILE@REF" string, so it's used here
+    # instead of fighting the mangled sub format.
     condition {
       test     = "StringLike"
-      variable = "token.actions.githubusercontent.com:sub"
-      values   = ["repo:${var.github_org}/${var.github_repo}:*"]
+      variable = "token.actions.githubusercontent.com:job_workflow_ref"
+      values   = ["${var.github_org}/${var.github_repo}/.github/workflows/*"]
+    }
+
+    condition {
+      test     = "StringEquals"
+      variable = "token.actions.githubusercontent.com:repository"
+      values   = ["${var.github_org}/${var.github_repo}"]
     }
   }
 }
